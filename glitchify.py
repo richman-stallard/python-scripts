@@ -15,7 +15,7 @@ def CheckImageListDimensions(aImages):
         Result = Result and np.shape(vImage) == np.shape(aImages[0]) # shape
     return Result
 
-def glitchify(aImages):
+def Glitchify(aImages):
     '''
     Combines the R channel of aImages[0], the G channel of aImages[1]
     and the B channel of aImages[2].
@@ -32,7 +32,7 @@ def glitchify(aImages):
         
     return Result
 
-def glitchify_random(aImages, aBlocksize):
+def GlitchifyBlockwise(aImages, aBlocksize):
     '''
     Takes a series of images and combines them randomly, i.e. for each block
     takes a random channel at that pixel from a random image. Block size is
@@ -65,7 +65,8 @@ def glitchify_random(aImages, aBlocksize):
                 ] = aImages[randint(0, len(aImages)-1)][
                     yidx*aBlocksize:(yidx+1)*aBlocksize,
                     xidx*aBlocksize:(xidx+1)*aBlocksize,
-                    randint(0, vChannels-1)
+#                    randint(0, vChannels-1)
+                    chidx
                 ]
     
     return Result
@@ -176,8 +177,8 @@ def main(argv):
     
     # Glitchification, storing result
     vGlitchified = \
-        glitchify_random(vImgList, vBlockSize) if vUseRandomAlgorithm \
-        else glitchify(vImgList)
+        GlitchifyBlockwise(vImgList, vBlockSize) if vUseRandomAlgorithm \
+        else Glitchify(vImgList)
     print "Glitchification success! Storing in", vOutFilePath
     try:
         vFile = open(vOutFilePath, 'w')
