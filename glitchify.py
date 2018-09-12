@@ -2,7 +2,7 @@ import numpy as np
 from scipy.ndimage import imread
 from scipy.misc import imsave
 import sys
-from os.path import exists
+from os.path import exists, abspath
 from random import randint
 
 def CheckImageListDimensions(aImages):
@@ -147,7 +147,7 @@ def main(argv):
             argv.remove("-n")
     assert (len(argv) > (3 if vUseRandomAlgorithm else 4)), \
         "Too few arguments!"
-    vOutFilePath = argv[1]
+    vOutFilePath = abspath(argv[1])
     vFileList = argv[2:] if vUseRandomAlgorithm else argv[2:5]
     
     # Overwrite?
@@ -161,11 +161,13 @@ def main(argv):
         
     # Loading images
     for vLine in vFileList:
+        vLine = abspath(vLine)
         try:
             vFile = open(vLine, 'r')
             vImgList.append(imread(vFile, mode="RGB"))
         except IOError as e:
-            raise IOError("Could not access file", vLine)
+            print "Could not access file", vLine
+            raise IOError
         finally:
             vFile.close()
             
@@ -184,7 +186,8 @@ def main(argv):
         vFile = open(vOutFilePath, 'w')
         imsave(vFile, vGlitchified)
     except IOError as e:
-        raise IOError("Could not access file", vOutFilePath)
+        print "Could not access file", vOutFilePath
+        raise IOError
     finally:
         vFile.close()
         
