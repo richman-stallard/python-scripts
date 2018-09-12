@@ -2,58 +2,70 @@ import numpy as np
 from scipy.ndimage import imread
 from scipy.misc import imsave
 import sys
-import os
-import random
+from os.path import exists
+from random import randint
 
-def check_img_list_dimensions(imgs):
-    Result = len(np.shape(imgs[0])) == 3 # dimensions
-    Result = Result and np.shape(imgs[0][2]) == 3 # channels
-    for img in imgs[1:]:
-        Result = Result and np.shape(img) == np.shape(imgs[0]) # shape
+def CheckImageListDimensions(aImages):
+    vImage = aImages[0]
+    Result = False
+    
+    Result = len(np.shape(aImages[0])) == 3 # dimensions
+    Result = Result and np.shape(aImages[0])[2] == 3 # channels
+    for vImage in aImages[1:]:
+        Result = Result and np.shape(vImage) == np.shape(aImages[0]) # shape
     return Result
 
-def glitchify(imgs):
+def glitchify(aImages):
     '''
-    Combines the R channel of imgs[0], the G channel of imgs[1]
-    and the B channel of imgs[2].
+    Combines the R channel of aImages[0], the G channel of aImages[1]
+    and the B channel of aImages[2].
     '''
-    assert len(imgs) == 3 # 3 images
-    assert check_img_list_dimensions
+    assert len(aImages) == 3 # 3 images
+    assert CheckImageListDimensions(aImages)
         
-    Result = np.zeros(np.shape(imgs[0])) # default
+    chidx = 0
+    Result = np.zeros(np.shape(aImages[0])) # default
     
     # glitchification
-    for ch in range(3):
-        Result[:, :, ch] = imgs[ch][:, :, ch]
+    for chidx in range(np.shape(Result)[2]):
+        Result[:, :, chidx] = aImages[chidx][:, :, chidx]
         
     return Result
 
-def glitchify_random(imgs, blocksize):
+def glitchify_random(aImages, aBlocksize):
     '''
     Takes a series of images and combines them randomly, i.e. for each block
     takes a random channel at that pixel from a random image. Block size is
     determined by command line arg.
     '''
-    assert len(imgs) > 1 # at least 2 images
-    assert check_img_list_dimensions
+    assert len(aImages) > 1 # at least 2 images
+    assert CheckImageListDimensions(aImages)
         
-    Result = np.zeros(np.shape(imgs[0])) # default
+    chidx = 0
+    vChannels = 0
+    vImagesX = 0
+    vImagesY = 0
+    vNumBlocksY = 0
+    vNumBlocksX = 0
+    xidx = 0
+    yidx = 0
+    Result = np.zeros(np.shape(aImages[0])) # default
     
     # glitchification
-    (Y, X, Channels) = np.shape(Result)
-    numblocksx = X/blocksize + (0 if X % blocksize == 0 else 1)
-    numblocksy = Y/blocksize + (0 if Y % blocksize == 0 else 1)
-    for ch in range(Channels):
-        for blockx in range(numblocksx):
-            for blocky in range(numblocksy):
+    (vImagesY, vImagesX, vChannels) = np.shape(Result)
+    vNumBlocksX = vImagesX/aBlocksize + (0 if vImagesX % aBlocksize == 0 else 1)
+    vNumBlocksY = vImagesY/aBlocksize + (0 if vImagesY % aBlocksize == 0 else 1)
+    for chidx in range(vChannels):
+        for xidx in range(vNumBlocksX):
+            for yidx in range(vNumBlocksY):
                 Result[
-                    blocky*blocksize:(blocky+1)*blocksize,
-                    blockx*blocksize:(blockx+1)*blocksize,
-                    ch
-                ] = imgs[random.randint(0, len(imgs)-1)][
-                    blocky*blocksize:(blocky+1)*blocksize,
-                    blockx*blocksize:(blockx+1)*blocksize,
-                    random.randint(0, Channels-1)
+                    yidx*aBlocksize:(yidx+1)*aBlocksize,
+                    xidx*aBlocksize:(xidx+1)*aBlocksize,
+                    chidx
+                ] = aImages[randint(0, len(aImages)-1)][
+                    yidx*aBlocksize:(yidx+1)*aBlocksize,
+                    xidx*aBlocksize:(xidx+1)*aBlocksize,
+                    randint(0, vChannels-1)
                 ]
     
     return Result
@@ -138,11 +150,11 @@ def main(argv):
     vFileList = argv[2:] if vUseRandomAlgorithm else argv[2:5]
     
     # Overwrite?
-    if vQueryOverwriteExistingOutfile and os.path.exists(vOutFilePath):
+    if vQueryOverwriteExistingOutfile and exists(vOutFilePath):
         vLine = raw_input("Overwrite existing output File " + vOutFilePath \
             + "? [y|N] ")
         vOverwriteExistingOutfile = len(vLine) > 0 and vLine[0] == 'y'
-    if os.path.exists(vOutFilePath) and not vOverwriteExistingOutfile:
+    if exists(vOutFilePath) and not vOverwriteExistingOutfile:
         print vOutFilePath, "exists and will not be overwritten. Exiting..."
         return 0
         
